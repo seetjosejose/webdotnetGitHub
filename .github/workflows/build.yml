@@ -54,14 +54,14 @@ jobs:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.WEBAPP_Stage_Publish_Profile }}
         package: .
-#   deploy-to-prod:
-#     name: Deploy to prod env
-#     needs: deploy-to-stage
-#     runs-on: windows-latest
-#     steps:
-#       - name: Log into Azure CLI with service principal
-#         uses: azure/login@v1.1
-#         with:
-#           creds: ${{ secrets.AZURE_CREDENTIALS }}
-#       - name: Swap slots
-#         run: az webapp deployment slot swap -s ${{ env.SLOT_NAME }} -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }}
+  deploy-to-prod:
+    name: Deploy to prod env
+    needs: deploy-to-stage
+    runs-on: windows-latest
+    steps:
+      - name: Log into Azure CLI with service principal
+        uses: azure/login@v1.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Swap slots
+        run: az webapp deployment slot swap -s ${{ env.SLOT_NAME }} -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }}
