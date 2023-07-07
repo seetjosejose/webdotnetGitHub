@@ -35,6 +35,7 @@ jobs:
       run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
   deploy-to-stage:
     name: Deploy to stage env
+    needs: build
     runs-on: windows-latest
     steps:
     - name: Deploy to stage env
@@ -50,6 +51,7 @@ jobs:
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
   deploy-to-prod:
     name: Deploy to prod env
+    needs: deploy-to-stage
     runs-on: windows-latest
     steps:
       - name: Swap slots
