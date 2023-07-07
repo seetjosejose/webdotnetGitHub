@@ -52,7 +52,7 @@ jobs:
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.WEBAPP_Stage_Publish_Profile }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        package: '*.csproj'
     - name: Publish artifacts
       uses: actions/upload-artifact@v1.0.0
       with:
