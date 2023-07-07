@@ -33,31 +33,31 @@ jobs:
 
     - name: Publish to folder
       run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
-#     - name: Publish artifacts
-#       uses: actions/upload-artifact@v1.0.0
-#       with:
-#         name: webapp
-#         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-  deploy-to-stage:
-    name: Deploy to stage env
-    needs: build
-    runs-on: windows-latest
-    steps:
-#     - name: Download artifact from build job
-#       uses: actions/download-artifact@v2
-#       with:
-#         name: webapp
-    - name: Deploy to stage env
-      uses: azure/webapps-deploy@v1
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.WEBAPP_Stage_Publish_Profile }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
     - name: Publish artifacts
       uses: actions/upload-artifact@v1.0.0
       with:
         name: webapp
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+  deploy-to-stage:
+    name: Deploy to stage env
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v2
+      with:
+        name: webapp
+    - name: Deploy to stage env
+      uses: azure/webapps-deploy@v1
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.WEBAPP_Stage_Publish_Profile }}
+        package: .
+#     - name: Publish artifacts
+#       uses: actions/upload-artifact@v1.0.0
+#       with:
+#         name: webapp
+#         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
   deploy-to-prod:
     name: Deploy to prod env
     needs: deploy-to-stage
