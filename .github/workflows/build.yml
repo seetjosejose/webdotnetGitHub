@@ -6,9 +6,10 @@ on:
       - main
 
 env:
-  AZURE_WEBAPP_NAME: SimpleFrameworkApp.sln     # set this to your application's name
+  AZURE_WEBAPP_NAME: ameth-webApp-1     # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: 'published'      # set this to the path to your web app project, defaults to the repository root
-
+  SLOT_NAME: slot-WebAppName-1  # Create a slot on your web app called "staging"
+  RESOURCE_GROUP: rgameth-1
 jobs:
   build:
     name: Build and deploy
@@ -32,15 +33,24 @@ jobs:
 
     - name: Publish to folder
       run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
-    - name: Deploy to Azure WebApp
+  deploy-to-stage:
+    name: Deploy to stage env
+    runs-on: windows-latest
+    steps:
+    - name: Deploy to stage env
       uses: azure/webapps-deploy@v1
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.WEB_APPDOTNET_GITHUB }}
+        publish-profile: ${{ secrets.WEBAPP_Stage_Publish_Profile }}
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
     - name: Publish artifacts
       uses: actions/upload-artifact@v1.0.0
       with:
         name: webapp
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+  deploy-to-prod:
+    name: Deploy to prod env
+    runs-on: windows-latest
+    steps:
+      - name: Swap slots
+        run: az webapp deployment slot swap -s ${{ env.SLOT_NAME }} -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }}
