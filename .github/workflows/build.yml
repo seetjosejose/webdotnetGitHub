@@ -58,6 +58,8 @@ jobs:
     name: Deploy to prod env
     needs: deploy-to-stage
     runs-on: windows-latest
+    environment:
+      name: Prod
     steps:
       - name: Log into Azure CLI with service principal
         uses: azure/login@v1.1
