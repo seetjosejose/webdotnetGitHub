@@ -1,26 +1,27 @@
-name: Build and Deploy
+name: Release to prod
 
 on:
   push:
     branches:
-      - main
+    - main
 
 env:
   AZURE_WEBAPP_NAME: SimpleFrameworkApp.sln     # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: 'published'      # set this to the path to your web app project, defaults to the repository root
   SLOT_NAME: slot-WebAppName-1  # Create a slot on your web app called "staging"
   RESOURCE_GROUP: rgameth-1
+
 jobs:
   build:
-    name: Build and deploy
     runs-on: windows-latest
+
     steps:
     - uses: actions/checkout@v2
-    
     - name: Setup MSBuild path
       uses: microsoft/setup-msbuild@v1.0.1
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
       env:
@@ -31,28 +32,52 @@ jobs:
     - name: Build
       run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release
 
-    - name: Publish to folder
-      run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
-  deploy-to-stage:
-    name: Deploy to stage env
-    needs: build
-    runs-on: windows-latest
-    steps:
-    - name: Deploy to stage env
-      uses: azure/webapps-deploy@v1
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.WEBAPP_Stage_Publish_Profile }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
     - name: Publish artifacts
       uses: actions/upload-artifact@v1.0.0
       with:
         name: webapp
         path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-  deploy-to-prod:
-    name: Deploy to prod env
-    needs: deploy-to-stage
-    runs-on: windows-latest
+    
+  deploy-to-stage:
+    name: Deploy to staging
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: 'Staging'
+      url: ${{ steps.deploy-to-stage.outputs.webapp-url }}
+
     steps:
-      - name: Swap slots
-        run: az webapp deployment slot swap -s ${{ env.SLOT_NAME }} -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }}
+    - name: Log into Azure CLI with service principal
+      uses: azure/login@v1.1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v2
+      with:
+        name: java-app
+    
+    - name: Deploy to stage env
+      uses: azure/webapps-deploy@v1
+      id: deploy-to-stage
+      with: 
+        app-name: ${{ env.WEBAPP_NAME }}
+        slot-name:  ${{ env.SLOT_NAME }}
+        package: '*.war'
+
+  release-to-prod:
+    name: Release to prod
+    needs: deploy-to-stage
+    runs-on: ubuntu-latest
+    environment:
+      name: 'Production'
+      url: 'https://${{ env.WEBAPP_NAME }}.azurewebsites.net/'
+
+    steps:
+    - name: Log into Azure CLI with service principal
+      uses: azure/login@v1.1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Swap slots
+      run: az webapp deployment slot swap -s ${{ env.SLOT_NAME }} -n ${{ env.WEBAPP_NAME }} -g ${{ env.RESOURCE_GROUP }}
