@@ -7,10 +7,10 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: SimpleFrameworkApp.sln     # set this to your application's name
-  WEBAPP_NAME: ameth-webApp-1
+  WEBAPP_NAME: ameth-webApp-2
   AZURE_WEBAPP_PACKAGE_PATH: 'published'      # set this to the path to your web app project, defaults to the repository root
-  SLOT_NAME: slot-WebAppName-1  # Create a slot on your web app called "staging"
-  RESOURCE_GROUP: rgameth-1
+  SLOT_NAME: slot-WebAppName-2  # Create a slot on your web app called "staging"
+  RESOURCE_GROUP: rgameth-2
 jobs:
   build:
     name: Build and deploy
