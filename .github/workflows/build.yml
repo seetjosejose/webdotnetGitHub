@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-
+# Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 env:
   AZURE_WEBAPP_NAME: SimpleFrameworkApp.sln     # set this to your application's name
   WEBAPP_NAME: ameth-webApp-2
